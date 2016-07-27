@@ -8,14 +8,14 @@
     <meta name="author" content="">
 
     <title>Hello Rumblr!</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>" data-turbolinks-track="reload">
   </head>
 
   <body>
     <div class="container" role="main">
       <div class="header">
         <ul class="nav nav-pills pull-right">
-          <li><a href="http://www.phoenixframework.org/docs">Get Started</a></li>
+          <li><%= link "Users", to: user_path(@conn, :index) %></li>
         </ul>
         <span class="logo"></span>
       </div>
@@ -26,6 +26,6 @@
       <%= @inner %>
 
     </div> <!-- /container -->
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <script src="<%= static_path(@conn, "/js/app.js") %>" data-turbolinks-track="reload"></script>
   </body>
 </html>

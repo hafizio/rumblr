@@ -14,11 +14,11 @@ defmodule Rumblr.Router do
   end
 
   scope "/", Rumblr do
-    pipe_through :browser # Use the default browser stack
+    pipe_through :browser
 
     get "/", PageController, :home
-    get "/users", UserController, :index
-    get "/users/:id", UserController, :show
+
+    resources "/users", UserController, only: [:index, :show, :new, :create]
   end
 
   # Other scopes may use custom stacks.

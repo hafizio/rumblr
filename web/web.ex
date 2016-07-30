@@ -18,7 +18,9 @@ defmodule Rumblr.Web do
 
   def model do
     quote do
-      use Ecto.Model
+      use Ecto.Schema
+      import Ecto
+      import Ecto.Changeset
     end
   end
 
@@ -27,7 +29,7 @@ defmodule Rumblr.Web do
       use Phoenix.Controller
 
       alias Rumblr.Repo
-      import Ecto.Model
+      import Ecto
       import Ecto.Query, only: [from: 1, from: 2]
 
       import Rumblr.Router.Helpers
@@ -44,6 +46,8 @@ defmodule Rumblr.Web do
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
 
+      import Rumblr.ErrorHelpers
+      import Rumblr.Gettext
       import Rumblr.Router.Helpers
     end
   end
@@ -59,7 +63,7 @@ defmodule Rumblr.Web do
       use Phoenix.Channel
 
       alias Rumblr.Repo
-      import Ecto.Model
+      import Ecto
       import Ecto.Query, only: [from: 1, from: 2]
 
     end

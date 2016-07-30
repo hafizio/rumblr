@@ -10,7 +10,7 @@ defmodule Rumblr do
       # Start the endpoint when the application starts
       supervisor(Rumblr.Endpoint, []),
       # Start the Ecto repository
-      # worker(Rumblr.Repo, []),
+      worker(Rumblr.Repo, []),
       # Here you could define other workers and supervisors as children
       # worker(Rumblr.Worker, [arg1, arg2, arg3]),
     ]

@@ -9,14 +9,13 @@ html lang="en"
     title Hello Rumblr!
     link rel="stylesheet" href="#{static_path(@conn, "/css/app.css")}" data-turbolinks-track="reload"
     script src="#{static_path(@conn, "/js/app.js")}" data-turbolinks-track="reload"
-  body
-    .container
-      .header
+    body
+      header
         ul.nav.nav-pills.pull-right
-          li = link "Users", to: user_path(@conn, :index)
-          li = link "Register", to: user_path(@conn, :new)
-        span.logo
+        li.btn.btn-primary = link "Users", to: user_path(@conn, :index)
+        li = link "Register", to: user_path(@conn, :new)
       p class="alert alert-info" role="alert" = get_flash(@conn, :info)
       p class="alert alert-danger" role="alert" = get_flash(@conn, :error)
-      main
+    main
+      .container
         = render @view_module, @view_template, assigns 

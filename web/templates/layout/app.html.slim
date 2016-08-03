@@ -10,12 +10,8 @@ html lang="en"
     link rel="stylesheet" href="#{static_path(@conn, "/css/app.css")}" data-turbolinks-track="reload"
     script src="#{static_path(@conn, "/js/app.js")}" data-turbolinks-track="reload"
     body
-      header
-        ul.nav.nav-pills.pull-right
-        li.btn.btn-primary = link "Users", to: user_path(@conn, :index)
-        li = link "Register", to: user_path(@conn, :new)
-      p class="alert alert-info" role="alert" = get_flash(@conn, :info)
-      p class="alert alert-danger" role="alert" = get_flash(@conn, :error)
-    main
-      .container
-        = render @view_module, @view_template, assigns 
+      = render "navbar.html", conn: @conn 
+      main
+        .container
+          = render @view_module, @view_template, assigns 
+      = render "footer.html", conn: @conn 

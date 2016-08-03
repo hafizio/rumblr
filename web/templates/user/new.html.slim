@@ -1,20 +1,15 @@
-h1 Where you create a new human
-
+h1.text-xs-center Register
 = form_for @changeset, user_path(@conn, :create), fn f ->
   = if @changeset.action do
-    div.alert.alert-danger
-      p Something went wrong. Please fix the errors below
-
+   .alert.alert-danger
+     p Something went wrong. Please fix the errors below
   .form-group
     = text_input f, :name, placeholder: "Name", class: "form-control" 
     = error_tag f, :name 
-
   .form-group
     = text_input f, :username, placeholder: "Unique Username", class: "form-control" 
     = error_tag f, :username 
-
   .form-group
     = password_input f, :password, placeholder: "Password", class: "form-control" 
     = error_tag f, :password 
-
   = submit "Create User", class: "btn btn-primary" 

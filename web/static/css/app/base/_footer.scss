@@ -1,0 +1,12 @@
+footer {
+  background-color: $gray-light;
+  height: 16vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  p {
+    text-align: center;
+    color: white;
+  }
+}

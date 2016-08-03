@@ -1,0 +1,5 @@
+nav.navbar
+  = link "Rumblr", to: page_path(@conn, :home), class: "navbar-brand"
+  ul.nav.navbar-nav
+    li.nav-item = link "Users", to: user_path(@conn, :index), class: "btn btn-primary"
+    li.nav-item = link "Register", to: user_path(@conn, :new), class: "btn btn-primary"

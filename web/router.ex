@@ -19,9 +19,14 @@ defmodule Rumblr.Router do
     pipe_through :browser
 
     get "/", PageController, :home
-
     resources "/users", UserController, only: [:index, :show, :new, :create]
     resources "/sessions", SessionController, only: [:new, :create, :delete]
+  end
+
+  scope "/manage", Rumblr do
+    pipe_through [:browser, :authenticate_user]
+
+    resources "/videos", VideoController
   end
 
   # Other scopes may use custom stacks.

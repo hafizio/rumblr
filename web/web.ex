@@ -33,6 +33,8 @@ defmodule Rumblr.Web do
       import Ecto.Query, only: [from: 1, from: 2]
 
       import Rumblr.Router.Helpers
+      import Rumblr.Gettext
+      import Rumblr.Auth, only: [authenticate_user: 2]
     end
   end
 
@@ -55,6 +57,8 @@ defmodule Rumblr.Web do
   def router do
     quote do
       use Phoenix.Router
+
+      import Rumblr.Auth, only: [authenticate_user: 2]
     end
   end
 

@@ -1,5 +1,9 @@
 nav.navbar
   = link "Rumblr", to: page_path(@conn, :home), class: "navbar-brand"
   ul.nav.navbar-nav
-    li.nav-item = link "Users", to: user_path(@conn, :index), class: "btn btn-primary"
-    li.nav-item = link "Register", to: user_path(@conn, :new), class: "btn btn-primary"
+    = if @current_user do
+      li.nav-item = link "Users", to: user_path(@conn, :index), class: "btn btn-primary"
+      li.nav-item = link "Log Out", to: session_path(@conn, :delete, @current_user), method: :delete, class: "btn btn-primary"
+    - else
+      li.nav-item = link "Register", to: user_path(@conn, :new), class: "btn btn-primary"
+      li.nav-item = link "Log In", to: session_path(@conn, :new), class: "btn btn-primary"

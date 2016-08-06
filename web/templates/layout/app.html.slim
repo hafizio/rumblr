@@ -10,8 +10,10 @@ html lang="en"
     link rel="stylesheet" href="#{static_path(@conn, "/css/app.css")}" data-turbolinks-track="reload"
     script src="#{static_path(@conn, "/js/app.js")}" data-turbolinks-track="reload"
     body
-      = render "navbar.html", conn: @conn 
+      = render "navbar.html", conn: @conn, current_user: @current_user 
       main
+        p class="alert alert-info" role="alert" = get_flash(@conn, :info)
+        p class="alert alert-danger" role="alert" = get_flash(@conn, :error)
         .container
           = render @view_module, @view_template, assigns 
       = render "footer.html", conn: @conn 

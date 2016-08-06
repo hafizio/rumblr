@@ -7,6 +7,8 @@ defmodule Rumblr.Router do
     plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug TurbolinksPlug
+    plug Rumblr.Auth, repo: Rumblr.Repo
   end
 
   pipeline :api do
@@ -19,6 +21,7 @@ defmodule Rumblr.Router do
     get "/", PageController, :home
 
     resources "/users", UserController, only: [:index, :show, :new, :create]
+    resources "/sessions", SessionController, only: [:new, :create, :delete]
   end
 
   # Other scopes may use custom stacks.

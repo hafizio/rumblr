@@ -37,6 +37,7 @@ defmodule Rumblr.Mixfile do
      {:comeonin, "~> 2.0"},
      {:phoenix_slime, "~> 0.6.0"},
      {:gettext, "~> 0.9"},
-     {:cowboy, "~> 1.0"}]
+     {:cowboy, "~> 1.0"},
+     {:turbolinks_plug, "~> 0.1.0"}]
   end
 end

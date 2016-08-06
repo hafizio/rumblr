@@ -1,0 +1,7 @@
+h1.text-xs-center Log In
+= form_for @conn, session_path(@conn, :create), [as: :session], fn f ->
+  .form-group
+    = text_input f, :username, placeholder: "Unique Username", class: "form-control" 
+  .form-group
+    = password_input f, :password, placeholder: "Password", class: "form-control" 
+  = submit "Log In", class: "btn btn-primary" 

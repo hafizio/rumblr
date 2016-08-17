@@ -19,11 +19,8 @@
 
 // import socket from "./socket"
 import "phoenix_html"
-import {Socket} from "phoenix"
+import { Socket } from "phoenix"
 
-const Turbolinks = require("turbolinks")
-Turbolinks.start()
-
-document.addEventListener("turbolinks:load", () => {
-  console.log("Loaded using turbolinks")
-})
+import "./controller"
+import "./modules/base"
+import "./controllers/base"

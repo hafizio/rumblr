@@ -9,11 +9,9 @@ html lang="en"
     title Hello Rumblr!
     link rel="stylesheet" href="#{static_path(@conn, "/css/app.css")}" data-turbolinks-track="reload"
     script src="#{static_path(@conn, "/js/app.js")}" data-turbolinks-track="reload"
-    body
+    body class=body_css_class(@conn) data-view=data_view(@conn) data-debug=data_debug(@conn)
       = render "navbar.html", conn: @conn, current_user: @current_user 
       main
-        p class="alert alert-info" role="alert" = get_flash(@conn, :info)
-        p class="alert alert-danger" role="alert" = get_flash(@conn, :error)
-        .container
-          = render @view_module, @view_template, assigns 
+        = show_flash(@conn)
+        = render @view_module, @view_template, assigns 
       = render "footer.html", conn: @conn 

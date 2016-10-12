@@ -38,6 +38,7 @@ defmodule Rumblr.Mixfile do
      {:phoenix_slime, "~> 0.6.0"},
      {:gettext, "~> 0.9"},
      {:cowboy, "~> 1.0"},
+     {:exrm, "~> 1.0.8"},
      {:turbolinks_plug, "~> 0.1.0"}]
   end
 end

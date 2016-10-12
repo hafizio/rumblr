@@ -9,7 +9,7 @@ defmodule Rumblr.LayoutView do
     "#{controller}##{action}"
   end
 
-  def data_debug(conn) do
+  def data_debug do
     if (Mix.env == :dev), do: "true", else: "false"
   end
 

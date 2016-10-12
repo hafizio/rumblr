@@ -1,7 +1,7 @@
 import "../router"
 
 export default Controllers["page"] = class Page {
-  home() {
+  index() {
     console.log("Happy back home")
   }
 }

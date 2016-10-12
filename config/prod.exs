@@ -15,6 +15,7 @@ config :rumblr, Rumblr.Endpoint,
   http: [port: {:system, "PORT"}],
   root: ".",
   server: true,
+  url: [host: "54.254.164.83"],
   cache_static_manifest: "public/static/manifest.json"
 
 # Do not print debug messages in production

@@ -6,7 +6,7 @@ defmodule Rumblr.SessionController do
   end
 
   def create(conn, %{"session" => %{"username" => user, "password" => pass}}) do
-    case Rumblr.Auth.login_by_username_and_pass(conn, user, pass, repo: Repo) do
+    case Rumblr.AuthService.login_by_username_and_pass(conn, user, pass, repo: Repo) do
       {:ok, conn} ->
         conn
         |> put_flash(:info, "Welcome back #{user}")
@@ -20,7 +20,7 @@ defmodule Rumblr.SessionController do
 
   def delete(conn, _) do
     conn
-    |> Rumblr.Auth.logout()
+    |> Rumblr.AuthService.logout()
     |> redirect(to: page_path(conn, :home))
   end
 

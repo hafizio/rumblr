@@ -8,7 +8,7 @@ defmodule Rumblr.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug TurbolinksPlug
-    plug Rumblr.Auth, repo: Rumblr.Repo
+    plug Rumblr.AuthService, repo: Rumblr.Repo
   end
 
   pipeline :api do

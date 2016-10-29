@@ -13,7 +13,7 @@ defmodule Rumblr.UserController do
     case Repo.insert(changeset) do
       {:ok, user} ->
         conn
-        |> Rumblr.Auth.login(user)
+        |> Rumblr.AuthService.login(user)
         |> put_flash(:info, "#{user.name} was created!")
         |> redirect(to: user_path(conn, :index))
       {:error, changeset} ->

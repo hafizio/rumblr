@@ -5,14 +5,16 @@ html lang="en"
     meta http-equiv="X-UA-Compatible" content="IE=edge"
     meta name="viewport" content="width=device-width, initial-scale=1"
     meta name="description" content="PostCo Plugin"
+    meta name="csrf-token" content="#{get_csrf_token()}"
+    meta name="csrf-param" content="_csrf_token"
     meta name="author" content="Hafiz Khairudin"
     title PostCo Plugin
     link rel="stylesheet" href="#{static_path(@conn, "/css/app.css")}" data-turbolinks-track="reload"
     script src="#{static_path(@conn, "/js/app.js")}" data-turbolinks-track="reload"
-  
+
   body class=body_css_class(@conn) data-view=data_view(@conn) data-debug=data_debug
-    = render "navbar.html", conn: @conn, current_user: @current_user 
+    = render "navbar.html", conn: @conn, current_user: @current_user
     main
       = show_flash(@conn)
-      = render @view_module, @view_template, assigns 
-    = render "footer.html", conn: @conn 
+      = render @view_module, @view_template, assigns
+    = render "footer.html", conn: @conn

@@ -150,6 +150,567 @@ var __makeRelativeRequire = function(require, mappings, pref) {
   }
 };
 
+require.register("jquery-ujs/src/rails.js", function(exports, require, module) {
+  require = __makeRelativeRequire(require, {}, "jquery-ujs");
+  (function() {
+    (function($, undefined) {
+
+/**
+ * Unobtrusive scripting adapter for jQuery
+ * https://github.com/rails/jquery-ujs
+ *
+ * Requires jQuery 1.8.0 or later.
+ *
+ * Released under the MIT license
+ *
+ */
+
+  // Cut down on the number of issues from people inadvertently including jquery_ujs twice
+  // by detecting and raising an error when it happens.
+  'use strict';
+
+  if ( $.rails !== undefined ) {
+    $.error('jquery-ujs has already been loaded!');
+  }
+
+  // Shorthand to make it a little easier to call public rails functions from within rails.js
+  var rails;
+  var $document = $(document);
+
+  $.rails = rails = {
+    // Link elements bound by jquery-ujs
+    linkClickSelector: 'a[data-confirm], a[data-method], a[data-remote]:not([disabled]), a[data-disable-with], a[data-disable]',
+
+    // Button elements bound by jquery-ujs
+    buttonClickSelector: 'button[data-remote]:not([form]):not(form button), button[data-confirm]:not([form]):not(form button)',
+
+    // Select elements bound by jquery-ujs
+    inputChangeSelector: 'select[data-remote], input[data-remote], textarea[data-remote]',
+
+    // Form elements bound by jquery-ujs
+    formSubmitSelector: 'form',
+
+    // Form input elements bound by jquery-ujs
+    formInputClickSelector: 'form input[type=submit], form input[type=image], form button[type=submit], form button:not([type]), input[type=submit][form], input[type=image][form], button[type=submit][form], button[form]:not([type])',
+
+    // Form input elements disabled during form submission
+    disableSelector: 'input[data-disable-with]:enabled, button[data-disable-with]:enabled, textarea[data-disable-with]:enabled, input[data-disable]:enabled, button[data-disable]:enabled, textarea[data-disable]:enabled',
+
+    // Form input elements re-enabled after form submission
+    enableSelector: 'input[data-disable-with]:disabled, button[data-disable-with]:disabled, textarea[data-disable-with]:disabled, input[data-disable]:disabled, button[data-disable]:disabled, textarea[data-disable]:disabled',
+
+    // Form required input elements
+    requiredInputSelector: 'input[name][required]:not([disabled]), textarea[name][required]:not([disabled])',
+
+    // Form file input elements
+    fileInputSelector: 'input[name][type=file]:not([disabled])',
+
+    // Link onClick disable selector with possible reenable after remote submission
+    linkDisableSelector: 'a[data-disable-with], a[data-disable]',
+
+    // Button onClick disable selector with possible reenable after remote submission
+    buttonDisableSelector: 'button[data-remote][data-disable-with], button[data-remote][data-disable]',
+
+    // Up-to-date Cross-Site Request Forgery token
+    csrfToken: function() {
+     return $('meta[name=csrf-token]').attr('content');
+    },
+
+    // URL param that must contain the CSRF token
+    csrfParam: function() {
+     return $('meta[name=csrf-param]').attr('content');
+    },
+
+    // Make sure that every Ajax request sends the CSRF token
+    CSRFProtection: function(xhr) {
+      var token = rails.csrfToken();
+      if (token) xhr.setRequestHeader('X-CSRF-Token', token);
+    },
+
+    // Make sure that all forms have actual up-to-date tokens (cached forms contain old ones)
+    refreshCSRFTokens: function(){
+      $('form input[name="' + rails.csrfParam() + '"]').val(rails.csrfToken());
+    },
+
+    // Triggers an event on an element and returns false if the event result is false
+    fire: function(obj, name, data) {
+      var event = $.Event(name);
+      obj.trigger(event, data);
+      return event.result !== false;
+    },
+
+    // Default confirm dialog, may be overridden with custom confirm dialog in $.rails.confirm
+    confirm: function(message) {
+      return confirm(message);
+    },
+
+    // Default ajax function, may be overridden with custom function in $.rails.ajax
+    ajax: function(options) {
+      return $.ajax(options);
+    },
+
+    // Default way to get an element's href. May be overridden at $.rails.href.
+    href: function(element) {
+      return element[0].href;
+    },
+
+    // Checks "data-remote" if true to handle the request through a XHR request.
+    isRemote: function(element) {
+      return element.data('remote') !== undefined && element.data('remote') !== false;
+    },
+
+    // Submits "remote" forms and links with ajax
+    handleRemote: function(element) {
+      var method, url, data, withCredentials, dataType, options;
+
+      if (rails.fire(element, 'ajax:before')) {
+        withCredentials = element.data('with-credentials') || null;
+        dataType = element.data('type') || ($.ajaxSettings && $.ajaxSettings.dataType);
+
+        if (element.is('form')) {
+          method = element.data('ujs:submit-button-formmethod') || element.attr('method');
+          url = element.data('ujs:submit-button-formaction') || element.attr('action');
+          data = $(element[0]).serializeArray();
+          // memoized value from clicked submit button
+          var button = element.data('ujs:submit-button');
+          if (button) {
+            data.push(button);
+            element.data('ujs:submit-button', null);
+          }
+          element.data('ujs:submit-button-formmethod', null);
+          element.data('ujs:submit-button-formaction', null);
+        } else if (element.is(rails.inputChangeSelector)) {
+          method = element.data('method');
+          url = element.data('url');
+          data = element.serialize();
+          if (element.data('params')) data = data + '&' + element.data('params');
+        } else if (element.is(rails.buttonClickSelector)) {
+          method = element.data('method') || 'get';
+          url = element.data('url');
+          data = element.serialize();
+          if (element.data('params')) data = data + '&' + element.data('params');
+        } else {
+          method = element.data('method');
+          url = rails.href(element);
+          data = element.data('params') || null;
+        }
+
+        options = {
+          type: method || 'GET', data: data, dataType: dataType,
+          // stopping the "ajax:beforeSend" event will cancel the ajax request
+          beforeSend: function(xhr, settings) {
+            if (settings.dataType === undefined) {
+              xhr.setRequestHeader('accept', '*/*;q=0.5, ' + settings.accepts.script);
+            }
+            if (rails.fire(element, 'ajax:beforeSend', [xhr, settings])) {
+              element.trigger('ajax:send', xhr);
+            } else {
+              return false;
+            }
+          },
+          success: function(data, status, xhr) {
+            element.trigger('ajax:success', [data, status, xhr]);
+          },
+          complete: function(xhr, status) {
+            element.trigger('ajax:complete', [xhr, status]);
+          },
+          error: function(xhr, status, error) {
+            element.trigger('ajax:error', [xhr, status, error]);
+          },
+          crossDomain: rails.isCrossDomain(url)
+        };
+
+        // There is no withCredentials for IE6-8 when
+        // "Enable native XMLHTTP support" is disabled
+        if (withCredentials) {
+          options.xhrFields = {
+            withCredentials: withCredentials
+          };
+        }
+
+        // Only pass url to `ajax` options if not blank
+        if (url) { options.url = url; }
+
+        return rails.ajax(options);
+      } else {
+        return false;
+      }
+    },
+
+    // Determines if the request is a cross domain request.
+    isCrossDomain: function(url) {
+      var originAnchor = document.createElement('a');
+      originAnchor.href = location.href;
+      var urlAnchor = document.createElement('a');
+
+      try {
+        urlAnchor.href = url;
+        // This is a workaround to a IE bug.
+        urlAnchor.href = urlAnchor.href;
+
+        // If URL protocol is false or is a string containing a single colon
+        // *and* host are false, assume it is not a cross-domain request
+        // (should only be the case for IE7 and IE compatibility mode).
+        // Otherwise, evaluate protocol and host of the URL against the origin
+        // protocol and host.
+        return !(((!urlAnchor.protocol || urlAnchor.protocol === ':') && !urlAnchor.host) ||
+          (originAnchor.protocol + '//' + originAnchor.host ===
+            urlAnchor.protocol + '//' + urlAnchor.host));
+      } catch (e) {
+        // If there is an error parsing the URL, assume it is crossDomain.
+        return true;
+      }
+    },
+
+    // Handles "data-method" on links such as:
+    // <a href="/users/5" data-method="delete" rel="nofollow" data-confirm="Are you sure?">Delete</a>
+    handleMethod: function(link) {
+      var href = rails.href(link),
+        method = link.data('method'),
+        target = link.attr('target'),
+        csrfToken = rails.csrfToken(),
+        csrfParam = rails.csrfParam(),
+        form = $('<form method="post" action="' + href + '"></form>'),
+        metadataInput = '<input name="_method" value="' + method + '" type="hidden" />';
+
+      if (csrfParam !== undefined && csrfToken !== undefined && !rails.isCrossDomain(href)) {
+        metadataInput += '<input name="' + csrfParam + '" value="' + csrfToken + '" type="hidden" />';
+      }
+
+      if (target) { form.attr('target', target); }
+
+      form.hide().append(metadataInput).appendTo('body');
+      form.submit();
+    },
+
+    // Helper function that returns form elements that match the specified CSS selector
+    // If form is actually a "form" element this will return associated elements outside the from that have
+    // the html form attribute set
+    formElements: function(form, selector) {
+      return form.is('form') ? $(form[0].elements).filter(selector) : form.find(selector);
+    },
+
+    /* Disables form elements:
+      - Caches element value in 'ujs:enable-with' data store
+      - Replaces element text with value of 'data-disable-with' attribute
+      - Sets disabled property to true
+    */
+    disableFormElements: function(form) {
+      rails.formElements(form, rails.disableSelector).each(function() {
+        rails.disableFormElement($(this));
+      });
+    },
+
+    disableFormElement: function(element) {
+      var method, replacement;
+
+      method = element.is('button') ? 'html' : 'val';
+      replacement = element.data('disable-with');
+
+      if (replacement !== undefined) {
+        element.data('ujs:enable-with', element[method]());
+        element[method](replacement);
+      }
+
+      element.prop('disabled', true);
+      element.data('ujs:disabled', true);
+    },
+
+    /* Re-enables disabled form elements:
+      - Replaces element text with cached value from 'ujs:enable-with' data store (created in `disableFormElements`)
+      - Sets disabled property to false
+    */
+    enableFormElements: function(form) {
+      rails.formElements(form, rails.enableSelector).each(function() {
+        rails.enableFormElement($(this));
+      });
+    },
+
+    enableFormElement: function(element) {
+      var method = element.is('button') ? 'html' : 'val';
+      if (element.data('ujs:enable-with') !== undefined) {
+        element[method](element.data('ujs:enable-with'));
+        element.removeData('ujs:enable-with'); // clean up cache
+      }
+      element.prop('disabled', false);
+      element.removeData('ujs:disabled');
+    },
+
+   /* For 'data-confirm' attribute:
+      - Fires `confirm` event
+      - Shows the confirmation dialog
+      - Fires the `confirm:complete` event
+
+      Returns `true` if no function stops the chain and user chose yes; `false` otherwise.
+      Attaching a handler to the element's `confirm` event that returns a `falsy` value cancels the confirmation dialog.
+      Attaching a handler to the element's `confirm:complete` event that returns a `falsy` value makes this function
+      return false. The `confirm:complete` event is fired whether or not the user answered true or false to the dialog.
+   */
+    allowAction: function(element) {
+      var message = element.data('confirm'),
+          answer = false, callback;
+      if (!message) { return true; }
+
+      if (rails.fire(element, 'confirm')) {
+        try {
+          answer = rails.confirm(message);
+        } catch (e) {
+          (console.error || console.log).call(console, e.stack || e);
+        }
+        callback = rails.fire(element, 'confirm:complete', [answer]);
+      }
+      return answer && callback;
+    },
+
+    // Helper function which checks for blank inputs in a form that match the specified CSS selector
+    blankInputs: function(form, specifiedSelector, nonBlank) {
+      var foundInputs = $(),
+        input,
+        valueToCheck,
+        radiosForNameWithNoneSelected,
+        radioName,
+        selector = specifiedSelector || 'input,textarea',
+        requiredInputs = form.find(selector),
+        checkedRadioButtonNames = {};
+
+      requiredInputs.each(function() {
+        input = $(this);
+        if (input.is('input[type=radio]')) {
+
+          // Don't count unchecked required radio as blank if other radio with same name is checked,
+          // regardless of whether same-name radio input has required attribute or not. The spec
+          // states https://www.w3.org/TR/html5/forms.html#the-required-attribute
+          radioName = input.attr('name');
+
+          // Skip if we've already seen the radio with this name.
+          if (!checkedRadioButtonNames[radioName]) {
+
+            // If none checked
+            if (form.find('input[type=radio]:checked[name="' + radioName + '"]').length === 0) {
+              radiosForNameWithNoneSelected = form.find(
+                'input[type=radio][name="' + radioName + '"]');
+              foundInputs = foundInputs.add(radiosForNameWithNoneSelected);
+            }
+
+            // We only need to check each name once.
+            checkedRadioButtonNames[radioName] = radioName;
+          }
+        } else {
+          valueToCheck = input.is('input[type=checkbox],input[type=radio]') ? input.is(':checked') : !!input.val();
+          if (valueToCheck === nonBlank) {
+            foundInputs = foundInputs.add(input);
+          }
+        }
+      });
+      return foundInputs.length ? foundInputs : false;
+    },
+
+    // Helper function which checks for non-blank inputs in a form that match the specified CSS selector
+    nonBlankInputs: function(form, specifiedSelector) {
+      return rails.blankInputs(form, specifiedSelector, true); // true specifies nonBlank
+    },
+
+    // Helper function, needed to provide consistent behavior in IE
+    stopEverything: function(e) {
+      $(e.target).trigger('ujs:everythingStopped');
+      e.stopImmediatePropagation();
+      return false;
+    },
+
+    //  Replace element's html with the 'data-disable-with' after storing original html
+    //  and prevent clicking on it
+    disableElement: function(element) {
+      var replacement = element.data('disable-with');
+
+      if (replacement !== undefined) {
+        element.data('ujs:enable-with', element.html()); // store enabled state
+        element.html(replacement);
+      }
+
+      element.bind('click.railsDisable', function(e) { // prevent further clicking
+        return rails.stopEverything(e);
+      });
+      element.data('ujs:disabled', true);
+    },
+
+    // Restore element to its original state which was disabled by 'disableElement' above
+    enableElement: function(element) {
+      if (element.data('ujs:enable-with') !== undefined) {
+        element.html(element.data('ujs:enable-with')); // set to old enabled state
+        element.removeData('ujs:enable-with'); // clean up cache
+      }
+      element.unbind('click.railsDisable'); // enable element
+      element.removeData('ujs:disabled');
+    }
+  };
+
+  if (rails.fire($document, 'rails:attachBindings')) {
+
+    $.ajaxPrefilter(function(options, originalOptions, xhr){ if ( !options.crossDomain ) { rails.CSRFProtection(xhr); }});
+
+    // This event works the same as the load event, except that it fires every
+    // time the page is loaded.
+    //
+    // See https://github.com/rails/jquery-ujs/issues/357
+    // See https://developer.mozilla.org/en-US/docs/Using_Firefox_1.5_caching
+    $(window).on('pageshow.rails', function () {
+      $($.rails.enableSelector).each(function () {
+        var element = $(this);
+
+        if (element.data('ujs:disabled')) {
+          $.rails.enableFormElement(element);
+        }
+      });
+
+      $($.rails.linkDisableSelector).each(function () {
+        var element = $(this);
+
+        if (element.data('ujs:disabled')) {
+          $.rails.enableElement(element);
+        }
+      });
+    });
+
+    $document.on('ajax:complete', rails.linkDisableSelector, function() {
+        rails.enableElement($(this));
+    });
+
+    $document.on('ajax:complete', rails.buttonDisableSelector, function() {
+        rails.enableFormElement($(this));
+    });
+
+    $document.on('click.rails', rails.linkClickSelector, function(e) {
+      var link = $(this), method = link.data('method'), data = link.data('params'), metaClick = e.metaKey || e.ctrlKey;
+      if (!rails.allowAction(link)) return rails.stopEverything(e);
+
+      if (!metaClick && link.is(rails.linkDisableSelector)) rails.disableElement(link);
+
+      if (rails.isRemote(link)) {
+        if (metaClick && (!method || method === 'GET') && !data) { return true; }
+
+        var handleRemote = rails.handleRemote(link);
+        // Response from rails.handleRemote() will either be false or a deferred object promise.
+        if (handleRemote === false) {
+          rails.enableElement(link);
+        } else {
+          handleRemote.fail( function() { rails.enableElement(link); } );
+        }
+        return false;
+
+      } else if (method) {
+        rails.handleMethod(link);
+        return false;
+      }
+    });
+
+    $document.on('click.rails', rails.buttonClickSelector, function(e) {
+      var button = $(this);
+
+      if (!rails.allowAction(button) || !rails.isRemote(button)) return rails.stopEverything(e);
+
+      if (button.is(rails.buttonDisableSelector)) rails.disableFormElement(button);
+
+      var handleRemote = rails.handleRemote(button);
+      // Response from rails.handleRemote() will either be false or a deferred object promise.
+      if (handleRemote === false) {
+        rails.enableFormElement(button);
+      } else {
+        handleRemote.fail( function() { rails.enableFormElement(button); } );
+      }
+      return false;
+    });
+
+    $document.on('change.rails', rails.inputChangeSelector, function(e) {
+      var link = $(this);
+      if (!rails.allowAction(link) || !rails.isRemote(link)) return rails.stopEverything(e);
+
+      rails.handleRemote(link);
+      return false;
+    });
+
+    $document.on('submit.rails', rails.formSubmitSelector, function(e) {
+      var form = $(this),
+        remote = rails.isRemote(form),
+        blankRequiredInputs,
+        nonBlankFileInputs;
+
+      if (!rails.allowAction(form)) return rails.stopEverything(e);
+
+      // Skip other logic when required values are missing or file upload is present
+      if (form.attr('novalidate') === undefined) {
+        if (form.data('ujs:formnovalidate-button') === undefined) {
+          blankRequiredInputs = rails.blankInputs(form, rails.requiredInputSelector, false);
+          if (blankRequiredInputs && rails.fire(form, 'ajax:aborted:required', [blankRequiredInputs])) {
+            return rails.stopEverything(e);
+          }
+        } else {
+          // Clear the formnovalidate in case the next button click is not on a formnovalidate button
+          // Not strictly necessary to do here, since it is also reset on each button click, but just to be certain
+          form.data('ujs:formnovalidate-button', undefined);
+        }
+      }
+
+      if (remote) {
+        nonBlankFileInputs = rails.nonBlankInputs(form, rails.fileInputSelector);
+        if (nonBlankFileInputs) {
+          // Slight timeout so that the submit button gets properly serialized
+          // (make it easy for event handler to serialize form without disabled values)
+          setTimeout(function(){ rails.disableFormElements(form); }, 13);
+          var aborted = rails.fire(form, 'ajax:aborted:file', [nonBlankFileInputs]);
+
+          // Re-enable form elements if event bindings return false (canceling normal form submission)
+          if (!aborted) { setTimeout(function(){ rails.enableFormElements(form); }, 13); }
+
+          return aborted;
+        }
+
+        rails.handleRemote(form);
+        return false;
+
+      } else {
+        // Slight timeout so that the submit button gets properly serialized
+        setTimeout(function(){ rails.disableFormElements(form); }, 13);
+      }
+    });
+
+    $document.on('click.rails', rails.formInputClickSelector, function(event) {
+      var button = $(this);
+
+      if (!rails.allowAction(button)) return rails.stopEverything(event);
+
+      // Register the pressed submit button
+      var name = button.attr('name'),
+        data = name ? {name:name, value:button.val()} : null;
+
+      var form = button.closest('form');
+      if (form.length === 0) {
+        form = $('#' + button.attr('form'));
+      }
+      form.data('ujs:submit-button', data);
+
+      // Save attributes from button
+      form.data('ujs:formnovalidate-button', button.attr('formnovalidate'));
+      form.data('ujs:submit-button-formaction', button.attr('formaction'));
+      form.data('ujs:submit-button-formmethod', button.attr('formmethod'));
+    });
+
+    $document.on('ajax:send.rails', rails.formSubmitSelector, function(event) {
+      if (this === event.target) rails.disableFormElements($(this));
+    });
+
+    $document.on('ajax:complete.rails', rails.formSubmitSelector, function(event) {
+      if (this === event.target) rails.enableFormElements($(this));
+    });
+
+    $(function(){
+      rails.refreshCSRFTokens();
+    });
+  }
+
+})( jQuery );
+  })();
+});
+
 require.register("jquery/dist/jquery.js", function(exports, require, module) {
   require = __makeRelativeRequire(require, {}, "jquery");
   (function() {
@@ -10390,6 +10951,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 // Phoenix Channels JavaScript client
@@ -10397,7 +10960,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ## Socket Connection
 //
 // A single connection is established to the server and
-// channels are mulitplexed over the connection.
+// channels are multiplexed over the connection.
 // Connect to the server using the `Socket` class:
 //
 //     let socket = new Socket("/ws", {params: {userToken: "123"}})
@@ -10417,7 +10980,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // events are listened for, messages are pushed to the server, and
 // the channel is joined with ok/error/timeout matches:
 //
-//     let channel = socket.channel("rooms:123", {token: roomToken})
+//     let channel = socket.channel("room:123", {token: roomToken})
 //     channel.on("new_msg", msg => console.log("Got message", msg) )
 //     $input.onEnter( e => {
 //       channel.push("new_msg", {body: e.target.val}, 10000)
@@ -10440,6 +11003,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // Successful joins receive an "ok" status, while unsuccessful joins
 // receive "error".
 //
+// ## Duplicate Join Subscriptions
+//
+// While the client may join any number of topics on any number of channels,
+// the client may only hold a single subscription for each unique topic at any
+// given time. When attempting to create a duplicate subscription,
+// the server will close the existing channel, log a warning, and
+// spawn a new channel for the topic. The client will have their
+// `channel.onClose` callbacks fired for the existing channel, and the new
+// channel join will have its receive hooks processed as normal.
 //
 // ## Pushing Messages
 //
@@ -10470,7 +11042,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // ### onError hooks
 //
 // `onError` hooks are invoked if the socket connection drops, or the channel
-// crashes on the server. In either case, a channel rejoin is attemtped
+// crashes on the server. In either case, a channel rejoin is attempted
 // automatically in an exponential backoff manner.
 //
 // ### onClose hooks
@@ -10479,7 +11051,78 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // closed on the server, or 2). The client explicitly closed, by calling
 // `channel.leave()`
 //
-
+//
+// ## Presence
+//
+// The `Presence` object provides features for syncing presence information
+// from the server with the client and handling presences joining and leaving.
+//
+// ### Syncing initial state from the server
+//
+// `Presence.syncState` is used to sync the list of presences on the server
+// with the client's state. An optional `onJoin` and `onLeave` callback can
+// be provided to react to changes in the client's local presences across
+// disconnects and reconnects with the server.
+//
+// `Presence.syncDiff` is used to sync a diff of presence join and leave
+// events from the server, as they happen. Like `syncState`, `syncDiff`
+// accepts optional `onJoin` and `onLeave` callbacks to react to a user
+// joining or leaving from a device.
+//
+// ### Listing Presences
+//
+// `Presence.list` is used to return a list of presence information
+// based on the local state of metadata. By default, all presence
+// metadata is returned, but a `listBy` function can be supplied to
+// allow the client to select which metadata to use for a given presence.
+// For example, you may have a user online from different devices with a
+// a metadata status of "online", but they have set themselves to "away"
+// on another device. In this case, they app may choose to use the "away"
+// status for what appears on the UI. The example below defines a `listBy`
+// function which prioritizes the first metadata which was registered for
+// each user. This could be the first tab they opened, or the first device
+// they came online from:
+//
+//     let state = {}
+//     state = Presence.syncState(state, stateFromServer)
+//     let listBy = (id, {metas: [first, ...rest]}) => {
+//       first.count = rest.length + 1 // count of this user's presences
+//       first.id = id
+//       return first
+//     }
+//     let onlineUsers = Presence.list(state, listBy)
+//
+//
+// ### Example Usage
+//
+//     // detect if user has joined for the 1st time or from another tab/device
+//     let onJoin = (id, current, newPres) => {
+//       if(!current){
+//         console.log("user has entered for the first time", newPres)
+//       } else {
+//         console.log("user additional presence", newPres)
+//       }
+//     }
+//     // detect if user has left from all tabs/devices, or is still present
+//     let onLeave = (id, current, leftPres) => {
+//       if(current.metas.length === 0){
+//         console.log("user has left from all devices", leftPres)
+//       } else {
+//         console.log("user left from a device", leftPres)
+//       }
+//     }
+//     let presences = {} // client's initial empty presence state
+//     // receive initial presence data from server, sent after join
+//     myChannel.on("presences", state => {
+//       presences = Presence.syncState(presences, state, onJoin, onLeave)
+//       displayUsers(Presence.list(presences))
+//     })
+//     // receive "presence_diff" from server, containing join/leave events
+//     myChannel.on("presence_diff", diff => {
+//       presences = Presence.syncDiff(presences, diff, onJoin, onLeave)
+//       this.setState({users: Presence.list(room.presences, listBy)})
+//     })
+//
 var VSN = "1.0.0";
 var SOCKET_STATES = { connecting: 0, open: 1, closing: 2, closed: 3 };
 var DEFAULT_TIMEOUT = 10000;
@@ -10487,7 +11130,8 @@ var CHANNEL_STATES = {
   closed: "closed",
   errored: "errored",
   joined: "joined",
-  joining: "joining"
+  joining: "joining",
+  leaving: "leaving"
 };
 var CHANNEL_EVENTS = {
   close: "phx_close",
@@ -10654,20 +11298,23 @@ var Channel = exports.Channel = function () {
       _this2.pushBuffer = [];
     });
     this.onClose(function () {
-      _this2.socket.log("channel", "close " + _this2.topic);
+      _this2.rejoinTimer.reset();
+      _this2.socket.log("channel", "close " + _this2.topic + " " + _this2.joinRef());
       _this2.state = CHANNEL_STATES.closed;
       _this2.socket.remove(_this2);
     });
     this.onError(function (reason) {
+      if (_this2.isLeaving() || _this2.isClosed()) {
+        return;
+      }
       _this2.socket.log("channel", "error " + _this2.topic, reason);
       _this2.state = CHANNEL_STATES.errored;
       _this2.rejoinTimer.scheduleTimeout();
     });
     this.joinPush.receive("timeout", function () {
-      if (_this2.state !== CHANNEL_STATES.joining) {
+      if (!_this2.isJoining()) {
         return;
       }
-
       _this2.socket.log("channel", "timeout " + _this2.topic, _this2.joinPush.timeout);
       _this2.state = CHANNEL_STATES.errored;
       _this2.rejoinTimer.scheduleTimeout();
@@ -10694,9 +11341,9 @@ var Channel = exports.Channel = function () {
         throw "tried to join multiple times. 'join' can only be called a single time per channel instance";
       } else {
         this.joinedOnce = true;
+        this.rejoin(timeout);
+        return this.joinPush;
       }
-      this.rejoin(timeout);
-      return this.joinPush;
     }
   }, {
     key: "onClose",
@@ -10725,7 +11372,7 @@ var Channel = exports.Channel = function () {
   }, {
     key: "canPush",
     value: function canPush() {
-      return this.socket.isConnected() && this.state === CHANNEL_STATES.joined;
+      return this.socket.isConnected() && this.isJoined();
     }
   }, {
     key: "push",
@@ -10766,9 +11413,10 @@ var Channel = exports.Channel = function () {
 
       var timeout = arguments.length <= 0 || arguments[0] === undefined ? this.timeout : arguments[0];
 
+      this.state = CHANNEL_STATES.leaving;
       var onClose = function onClose() {
         _this3.socket.log("channel", "leave " + _this3.topic);
-        _this3.trigger(CHANNEL_EVENTS.close, "leave");
+        _this3.trigger(CHANNEL_EVENTS.close, "leave", _this3.joinRef());
       };
       var leavePush = new Push(this, CHANNEL_EVENTS.leave, {}, timeout);
       leavePush.receive("ok", function () {
@@ -10787,10 +11435,15 @@ var Channel = exports.Channel = function () {
     // Overridable message hook
     //
     // Receives all events for specialized message handling
+    // before dispatching to the channel callbacks.
+    //
+    // Must return the payload, modified or unmodified
 
   }, {
     key: "onMessage",
-    value: function onMessage(event, payload, ref) {}
+    value: function onMessage(event, payload, ref) {
+      return payload;
+    }
 
     // private
 
@@ -10798,6 +11451,11 @@ var Channel = exports.Channel = function () {
     key: "isMember",
     value: function isMember(topic) {
       return this.topic === topic;
+    }
+  }, {
+    key: "joinRef",
+    value: function joinRef() {
+      return this.joinPush.ref;
     }
   }, {
     key: "sendJoin",
@@ -10809,22 +11467,62 @@ var Channel = exports.Channel = function () {
     key: "rejoin",
     value: function rejoin() {
       var timeout = arguments.length <= 0 || arguments[0] === undefined ? this.timeout : arguments[0];
+      if (this.isLeaving()) {
+        return;
+      }
       this.sendJoin(timeout);
     }
   }, {
     key: "trigger",
-    value: function trigger(triggerEvent, payload, ref) {
-      this.onMessage(triggerEvent, payload, ref);
+    value: function trigger(event, payload, ref) {
+      var close = CHANNEL_EVENTS.close;
+      var error = CHANNEL_EVENTS.error;
+      var leave = CHANNEL_EVENTS.leave;
+      var join = CHANNEL_EVENTS.join;
+
+      if (ref && [close, error, leave, join].indexOf(event) >= 0 && ref !== this.joinRef()) {
+        return;
+      }
+      var handledPayload = this.onMessage(event, payload, ref);
+      if (payload && !handledPayload) {
+        throw "channel onMessage callbacks must return the payload, modified or unmodified";
+      }
+
       this.bindings.filter(function (bind) {
-        return bind.event === triggerEvent;
+        return bind.event === event;
       }).map(function (bind) {
-        return bind.callback(payload, ref);
+        return bind.callback(handledPayload, ref);
       });
     }
   }, {
     key: "replyEventName",
     value: function replyEventName(ref) {
       return "chan_reply_" + ref;
+    }
+  }, {
+    key: "isClosed",
+    value: function isClosed() {
+      return this.state === CHANNEL_STATES.closed;
+    }
+  }, {
+    key: "isErrored",
+    value: function isErrored() {
+      return this.state === CHANNEL_STATES.errored;
+    }
+  }, {
+    key: "isJoined",
+    value: function isJoined() {
+      return this.state === CHANNEL_STATES.joined;
+    }
+  }, {
+    key: "isJoining",
+    value: function isJoining() {
+      return this.state === CHANNEL_STATES.joining;
+    }
+  }, {
+    key: "isLeaving",
+    value: function isLeaving() {
+      return this.state === CHANNEL_STATES.leaving;
     }
   }]);
 
@@ -11057,7 +11755,7 @@ var Socket = exports.Socket = function () {
     key: "remove",
     value: function remove(channel) {
       this.channels = this.channels.filter(function (c) {
-        return !c.isMember(channel.topic);
+        return c.joinRef() !== channel.joinRef();
       });
     }
   }, {
@@ -11353,6 +12051,114 @@ var Ajax = exports.Ajax = function () {
 
 Ajax.states = { complete: 4 };
 
+var Presence = exports.Presence = {
+  syncState: function syncState(currentState, newState, onJoin, onLeave) {
+    var _this12 = this;
+
+    var state = this.clone(currentState);
+    var joins = {};
+    var leaves = {};
+
+    this.map(state, function (key, presence) {
+      if (!newState[key]) {
+        leaves[key] = presence;
+      }
+    });
+    this.map(newState, function (key, newPresence) {
+      var currentPresence = state[key];
+      if (currentPresence) {
+        (function () {
+          var newRefs = newPresence.metas.map(function (m) {
+            return m.phx_ref;
+          });
+          var curRefs = currentPresence.metas.map(function (m) {
+            return m.phx_ref;
+          });
+          var joinedMetas = newPresence.metas.filter(function (m) {
+            return curRefs.indexOf(m.phx_ref) < 0;
+          });
+          var leftMetas = currentPresence.metas.filter(function (m) {
+            return newRefs.indexOf(m.phx_ref) < 0;
+          });
+          if (joinedMetas.length > 0) {
+            joins[key] = newPresence;
+            joins[key].metas = joinedMetas;
+          }
+          if (leftMetas.length > 0) {
+            leaves[key] = _this12.clone(currentPresence);
+            leaves[key].metas = leftMetas;
+          }
+        })();
+      } else {
+        joins[key] = newPresence;
+      }
+    });
+    return this.syncDiff(state, { joins: joins, leaves: leaves }, onJoin, onLeave);
+  },
+  syncDiff: function syncDiff(currentState, _ref2, onJoin, onLeave) {
+    var joins = _ref2.joins;
+    var leaves = _ref2.leaves;
+
+    var state = this.clone(currentState);
+    if (!onJoin) {
+      onJoin = function onJoin() {};
+    }
+    if (!onLeave) {
+      onLeave = function onLeave() {};
+    }
+
+    this.map(joins, function (key, newPresence) {
+      var currentPresence = state[key];
+      state[key] = newPresence;
+      if (currentPresence) {
+        var _state$key$metas;
+
+        (_state$key$metas = state[key].metas).unshift.apply(_state$key$metas, _toConsumableArray(currentPresence.metas));
+      }
+      onJoin(key, currentPresence, newPresence);
+    });
+    this.map(leaves, function (key, leftPresence) {
+      var currentPresence = state[key];
+      if (!currentPresence) {
+        return;
+      }
+      var refsToRemove = leftPresence.metas.map(function (m) {
+        return m.phx_ref;
+      });
+      currentPresence.metas = currentPresence.metas.filter(function (p) {
+        return refsToRemove.indexOf(p.phx_ref) < 0;
+      });
+      onLeave(key, currentPresence, leftPresence);
+      if (currentPresence.metas.length === 0) {
+        delete state[key];
+      }
+    });
+    return state;
+  },
+  list: function list(presences, chooser) {
+    if (!chooser) {
+      chooser = function chooser(key, pres) {
+        return pres;
+      };
+    }
+
+    return this.map(presences, function (key, presence) {
+      return chooser(key, presence);
+    });
+  },
+
+  // private
+
+  map: function map(obj, func) {
+    return Object.getOwnPropertyNames(obj).map(function (key) {
+      return func(key, obj[key]);
+    });
+  },
+  clone: function clone(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+};
+
 // Creates a timer that accepts a `timerCalc` function to perform
 // calculated timeout retries, such as exponential backoff.
 //
@@ -11389,13 +12195,13 @@ var Timer = function () {
   }, {
     key: "scheduleTimeout",
     value: function scheduleTimeout() {
-      var _this12 = this;
+      var _this13 = this;
 
       clearTimeout(this.timer);
 
       this.timer = setTimeout(function () {
-        _this12.tries = _this12.tries + 1;
-        _this12.callback();
+        _this13.tries = _this13.tries + 1;
+        _this13.callback();
       }, this.timerCalc(this.tries + 1));
     }
   }]);
@@ -11403,45 +12209,7 @@ var Timer = function () {
   return Timer;
 }();
 
-
 })(typeof(exports) === "undefined" ? window.Phoenix = window.Phoenix || {} : exports);
-  })();
-});
-
-require.register("phoenix_html/priv/static/phoenix_html.js", function(exports, require, module) {
-  require = __makeRelativeRequire(require, {}, "phoenix_html");
-  (function() {
-    'use strict';
-
-function isLinkToSubmitParent(element) {
-  var isLinkTag = element.tagName === 'A';
-  var shouldSubmitParent = element.getAttribute('data-submit') === 'parent';
-
-  return isLinkTag && shouldSubmitParent;
-}
-
-function didHandleSubmitLinkClick(element) {
-  while (element && element.getAttribute) {
-    if (isLinkToSubmitParent(element)) {
-      var message = element.getAttribute('data-confirm');
-      if (message === null || confirm(message)) {
-        element.parentNode.submit();
-      };
-      return true;
-    } else {
-      element = element.parentNode;
-    }
-  }
-  return false;
-}
-
-// for links with HTTP methods other than GET
-window.addEventListener('click', function (event) {
-  if (event.target && didHandleSubmitLinkClick(event.target)) {
-    event.preventDefault();
-    return false;
-  }
-}, false);
   })();
 });
 
@@ -11645,7 +12413,7 @@ var o,i,s,a,u;return i=null!=n?n:{},a=i.restorationIdentifier,s=i.restorationDat
 require.register("web/static/js/app.js", function(exports, require, module) {
 "use strict";
 
-require("phoenix_html");
+require("jquery-ujs");
 
 var _phoenix = require("phoenix");
 
@@ -11845,14 +12613,15 @@ exports.default = socket;
 });
 
 ;require.alias("jquery/dist/jquery.js", "jquery");
+require.alias("jquery-ujs/src/rails.js", "jquery-ujs");
 require.alias("phoenix/priv/static/phoenix.js", "phoenix");
-require.alias("phoenix_html/priv/static/phoenix_html.js", "phoenix_html");
 require.alias("process/browser.js", "process");
 require.alias("turbolinks/dist/turbolinks.js", "turbolinks");process = require('process');require.register("___globals___", function(exports, require, module) {
   
 
 // Auto-loaded modules from config.npm.globals.
 window["$"] = require("jquery");
+window.jQuery = require("jquery");
 
 
 });})();require('___globals___');

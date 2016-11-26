@@ -18,7 +18,8 @@
 // paths "./socket" or full ones "web/static/js/socket".
 
 // import socket from "./socket"
-import "phoenix_html"
+// import "phoenix_html"
+import 'jquery-ujs'
 import { Socket } from "phoenix"
 
 import "./controller"

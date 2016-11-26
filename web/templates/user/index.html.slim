@@ -1,0 +1,7 @@
+h1 List of all customers
+
+ul
+  = for user <- @users do
+    li
+      = "#{first_name(user)} as user No: #{user.id} "
+      = link "View", to: user_path(@conn, :show, user.id)

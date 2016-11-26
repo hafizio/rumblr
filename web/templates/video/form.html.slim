@@ -1,5 +1,5 @@
 = form_for @changeset, @action, fn f ->
-  = if @changeset.action do 
+  = if @changeset.action do
     .alert.alert-danger
       p Oops, something went wrong! Please check the errors below.
   .form-group
@@ -10,12 +10,12 @@
     = text_input f, :url, class: "form-control"
     = error_tag f, :url
   .form-group
-    = label f, :title, class: "control-label" 
-    = text_input f, :title, class: "form-control" 
-    = error_tag f, :title 
+    = label f, :title, class: "control-label"
+    = text_input f, :title, class: "form-control"
+    = error_tag f, :title
   .form-group
-    = label f, :description, class: "control-label" 
-    = textarea f, :description, class: "form-control" 
-    = error_tag f, :description 
+    = label f, :description, class: "control-label"
+    = textarea f, :description, class: "form-control"
+    = error_tag f, :description
   .form-group
-    = submit "Submit", class: "btn btn-primary" 
+    = submit "Submit", class: "btn btn-primary"

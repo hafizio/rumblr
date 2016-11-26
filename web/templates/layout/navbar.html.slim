@@ -1,5 +1,5 @@
 nav.navbar
-  = link "Rumblr on AWS", to: page_path(@conn, :home), class: "navbar-brand"
+  = link "Rumblr", to: page_path(@conn, :home), class: "navbar-brand"
   ul.nav.navbar-nav
     = if @current_user do
       li.nav-item = link "Users", to: user_path(@conn, :index), class: "btn btn-primary"

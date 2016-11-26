@@ -4,7 +4,7 @@ defmodule Rumblr.Mixfile do
   def project do
     [app: :rumblr,
      version: "0.0.2",
-     elixir: "~> 1.0",
+     elixir: "~> 1.3.4",
      elixirc_paths: elixirc_paths(Mix.env),
      compilers: [:phoenix, :gettext] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
@@ -29,7 +29,7 @@ defmodule Rumblr.Mixfile do
   #
   # Type `mix help deps` for examples and options
   defp deps do
-    [{:phoenix, "~> 1.1.2"},
+    [{:phoenix, "~> 1.2.1"},
      {:phoenix_ecto, "~> 2.0"},
      {:postgrex, ">= 0.0.0"},
      {:phoenix_html, "~> 2.3"},
@@ -39,6 +39,6 @@ defmodule Rumblr.Mixfile do
      {:gettext, "~> 0.9"},
      {:cowboy, "~> 1.0"},
      {:exrm, "~> 1.0.8"},
-     {:turbolinks_plug, "~> 0.1.0"}]
+     {:turbolinks, "~> 0.1.0"}]
   end
 end

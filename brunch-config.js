@@ -70,7 +70,8 @@ exports.config = {
     enabled: true,
     whitelist: ["phoenix", "phoenix_html"],
     globals: {
-      $: 'jquery'
+      $: 'jquery',
+      jQuery: 'jquery'
     }
   }
 };

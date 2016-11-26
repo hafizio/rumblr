@@ -27,7 +27,7 @@ defmodule Rumblr.Web do
 
   def controller do
     quote do
-      use Phoenix.Controller
+      use Turbolinks
 
       alias Rumblr.Repo
       import Ecto

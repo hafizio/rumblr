@@ -1,18 +1,24 @@
 {
+  "private": "true",
+  "license": "UNLICENSED",
   "repository": {},
+  "engine": "node 7.2.0",
   "dependencies": {
+    "bootstrap": "^4.0.0-alpha.5",
+    "isomorphic-fetch": "^2.2.1",
+    "jquery": "^3.1.0",
+    "jquery-ujs": "^1.2.2",
+    "phoenix": "file:deps/phoenix",
+    "phoenix_html": "file:deps/phoenix_html",
+    "turbolinks": "^5.0.0"
+  },
+  "devDependencies": {
     "babel-brunch": "^6.0.0",
-    "bootstrap": "^4.0.0-alpha.3",
     "brunch": "^2.1.1",
     "clean-css-brunch": ">= 1.0 < 1.8",
     "css-brunch": ">= 1.0 < 1.8",
-    "isomorphic-fetch": "^2.2.1",
     "javascript-brunch": ">= 1.0 < 1.8",
-    "jquery": "^3.1.0",
-    "phoenix": "file:deps/phoenix",
-    "phoenix_html": "file:deps/phoenix_html",
     "sass-brunch": "^2.6.3",
-    "turbolinks": "^5.0.0",
     "uglify-js-brunch": ">= 1.0 < 1.8"
   }
 }

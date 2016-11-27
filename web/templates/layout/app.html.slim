@@ -17,4 +17,5 @@ html lang="en"
     main
       = show_flash(@conn)
       = render @view_module, @view_template, assigns
+      = render "modal.html", conn: @conn
     = render "footer.html", conn: @conn

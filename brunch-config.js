@@ -71,7 +71,8 @@ exports.config = {
     whitelist: ["phoenix", "phoenix_html"],
     globals: {
       $: 'jquery',
-      jQuery: 'jquery'
+      jQuery: 'jquery',
+      Tether: 'tether'
     }
   }
 };

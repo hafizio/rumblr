@@ -1,3 +1,4 @@
 div.jumbotron
   h2 Welcome to Rumblr
   p.lead Video commenting made easy.
+  = link "Notice", to: notice_path(@conn, :show), data: [remote: true, js_modal: true], class: "btn btn-primary"

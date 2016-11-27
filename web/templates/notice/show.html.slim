@@ -1,0 +1,6 @@
+.modal-header
+  h4.modal-title Usage Notice
+.modal-body
+  p First page
+.modal-footer
+  = link "Next", to: notice_path(@conn, :index), data: [remote: true, js_modal: true], class: "btn btn-primary"
